@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自宅プログラム v5 — 毎朝の運動習慣を再建する</title>
+<style>
+  :root{
+    --bg:#faf9f7; --card:#ffffff; --ink:#1b1917; --muted:#6c655d;
+    --line:#e5ded4; --accent:#8a5a2b; --chip:#f1ebe2;
+    --d1:#b4532a; --d2:#2f6f5e; --d3:#2b5f8a; --d4:#6a5091;
+    --d5:#a3552c; --d6:#3f7a4a; --d7:#7a6a55;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.8 -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    overflow-wrap:anywhere; word-break:normal;
+  }
+  .wrap{max-width:44rem; margin:0 auto; padding:1.5rem 1rem 4rem;}
+
+  header.top{border-bottom:2px solid var(--ink); padding-bottom:1rem; margin-bottom:1.75rem;}
+  header.top h1{font-size:1.4rem; line-height:1.5; margin:0 0 .5rem;}
+  header.top .meta{font-size:.82rem; color:var(--muted); margin:.15rem 0;}
+  .state{display:inline-block; background:var(--ink); color:#fff; font-size:.78rem;
+         padding:.15rem .6rem; border-radius:1rem; margin-bottom:.4rem;}
+
+  section{margin:0 0 2.5rem;}
+  h2{font-size:1.12rem; margin:0 0 .35rem; padding-bottom:.35rem; border-bottom:1px solid var(--line);}
+  h2 .num{color:var(--accent); font-size:.85rem; margin-right:.4rem;}
+  .lede{font-size:.9rem; color:var(--muted); margin:.5rem 0 1rem;}
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-left:5px solid var(--line);
+    border-radius:.4rem; padding:.9rem 1rem; margin:0 0 .8rem;
+  }
+  .card h3{margin:0; font-size:1rem;}
+  .card .sub{font-size:.82rem; color:var(--muted); margin:.15rem 0 .7rem;}
+  .card ul{margin:0; padding-left:1.1rem;}
+  .card li{margin:.35rem 0; font-size:.94rem;}
+  .card li.plain{list-style:none; margin-left:-1.1rem;}
+
+  .chip{
+    display:inline-block; background:var(--chip); color:var(--accent);
+    font-size:.7rem; font-weight:700; letter-spacing:.02em;
+    padding:.05rem .45rem; border-radius:.25rem; margin-right:.35rem; white-space:nowrap;
+  }
+  .why{
+    margin-top:.75rem; padding-top:.6rem; border-top:1px dashed var(--line);
+    font-size:.86rem; color:var(--muted);
+  }
+  .why b{color:var(--ink); font-weight:700;}
+  .why p{margin:.2rem 0;}
+
+  .d1{border-left-color:var(--d1);} .d2{border-left-color:var(--d2);}
+  .d3{border-left-color:var(--d3);} .d4{border-left-color:var(--d4);}
+  .d5{border-left-color:var(--d5);} .d6{border-left-color:var(--d6);}
+  .d7{border-left-color:var(--d7);}
+  .d1 h3{color:var(--d1);} .d2 h3{color:var(--d2);} .d3 h3{color:var(--d3);}
+  .d4 h3{color:var(--d4);} .d5 h3{color:var(--d5);} .d6 h3{color:var(--d6);}
+  .d7 h3{color:var(--d7);}
+
+  .note{font-size:.86rem; color:var(--muted); border-left:3px solid var(--line); padding-left:.75rem; margin:1rem 0 0;}
+
+  .phase{background:var(--card); border:1px solid var(--line); border-radius:.4rem; padding:.9rem 1rem; margin-bottom:.7rem;}
+  .phase h3{margin:0 0 .5rem; font-size:1rem; color:var(--accent);}
+  .kv{display:grid; grid-template-columns:5.5rem 1fr; gap:.15rem .6rem; font-size:.9rem;}
+  .kv dt{color:var(--muted); font-size:.82rem;}
+  .kv dd{margin:0;}
+
+  .checklist{background:var(--card); border:1px solid var(--line); border-radius:.4rem; padding:.9rem 1rem;}
+  .checklist h3{margin:0 0 .6rem; font-size:.95rem;}
+  .checklist label{display:flex; gap:.55rem; align-items:flex-start; margin:.5rem 0; font-size:.92rem;}
+  .checklist input{margin-top:.4rem; flex:0 0 auto; width:1.05rem; height:1.05rem;}
+
+  ol.rocket{padding-left:1.3rem; margin:0;}
+  ol.rocket li{margin:.6rem 0; font-size:.94rem;}
+  ol.rocket b{color:var(--accent);}
+
+  .three{display:grid; grid-template-columns:1fr; gap:.5rem; margin:0; padding:0; list-style:none;}
+  .three li{background:var(--card); border:1px solid var(--line); border-radius:.4rem; padding:.6rem .8rem; font-size:.92rem;}
+  .three li span{display:block; font-size:.72rem; color:var(--accent); font-weight:700;}
+
+  .steps{margin:0; padding-left:1.1rem;}
+  .steps li{margin:.3rem 0; font-size:.94rem;}
+
+  .tablewrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  table{border-collapse:collapse; width:100%; font-size:.9rem; background:var(--card);}
+  caption{text-align:left; font-size:.86rem; color:var(--muted); padding-bottom:.4rem;}
+  th,td{border:1px solid var(--line); padding:.4rem .6rem;}
+  th{background:var(--chip); font-weight:700; text-align:left;}
+  td.n{text-align:right; font-variant-numeric:tabular-nums;}
+  tr.hole td{background:#fdf2ee; font-weight:700;}
+
+  ul.facts{padding-left:1.1rem; margin:1rem 0 0;}
+  ul.facts li{margin:.4rem 0; font-size:.92rem;}
+  .callout{background:var(--card); border:1px solid var(--line); border-radius:.4rem; padding:.8rem 1rem; margin:.8rem 0 0; font-size:.92rem;}
+  .callout b{color:var(--accent);}
+
+  .calendar-link{margin:0 0 1.5rem;}
+  .calendar-link a{display:block; text-align:center; background:var(--ink); color:#fff;
+    text-decoration:none; font-weight:700; font-size:.95rem; padding:.8rem 1rem; border-radius:.4rem;}
+
+  footer.foot{border-top:1px solid var(--line); padding-top:.9rem; font-size:.78rem; color:var(--muted);}
+
+  @media (max-width:400px){
+    body{font-size:15px;}
+    .wrap{padding:1.2rem .75rem 3rem;}
+    .kv{grid-template-columns:1fr;}
+    .kv dt{margin-top:.35rem;}
+  }
+  @media print{
+    :root{--bg:#fff; --card:#fff;}
+    body{font-size:10.5pt; line-height:1.6;}
+    .wrap{max-width:none; padding:0;}
+    .card,.phase,.checklist,.three li,.callout,section,table{break-inside:avoid; page-break-inside:avoid;}
+    h2{break-after:avoid; page-break-after:avoid;}
+    .tablewrap{overflow:visible;}
+    tr.hole td{background:#fff; text-decoration:underline;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <span class="state">状態: 2026-09-07 完成版 / Phase 0 運用中</span>
+  <h1>自宅プログラム v5 — 毎朝の運動習慣を再建する</h1>
+  <p class="meta">設計の正本 = PROGRAM-DESIGN-v1_20260904.md（本ページはその一覧版）</p>
+  <p class="meta">要件の正本 = PROGRAM-REQUIREMENTS_20260903.md</p>
+  <p class="meta">継承元 = 2019年トレーナー監修プログラム、リスタートプログラム v4</p>
+</header>
+
+<!-- ① -->
+<section>
+  <h2><span class="num">①</span>今日やること — 7日ローテーション（曜日固定）</h2>
+  <p class="lede">迷わない仕組み = 曜日を見れば今日の主菜が決まっている。選択肢は水曜の外/中だけに固定する。</p>
+
+  <div class="card d1">
+    <h3>月 — 脚とお尻 A</h3>
+    <p class="sub">脚・お尻 A（両脚スクワット系）</p>
+    <ul>
+      <li class="pslot"><span class="chip">Phase 0</span>自重スクワット 10×1（2分で終わる）</li>
+      <li class="pslot"><span class="chip">Phase 1</span>スクワット 15×3／ヒップリフト 15×3／壁ボールスクワット 10×2</li>
+      <li class="pslot"><span class="chip">Phase 2</span>加重リュック（5→15kg）／テンポ法（5秒で下ろす→1秒静止→爆発的に上げる）／ステッパー上スクワット</li>
+      <li>月曜は撮影日を兼ねる（下記「フォーム確認」）</li>
+    </ul>
+    <div class="why">
+      <p><b>なぜこの日か</b> = 週の頭に最大の筋群。2019と同じ「脚が土台」</p>
+      <p><b>なぜ</b> = 最大の筋群＝血流改善の本丸。テンポは重量なしで「潰れそう」を作る唯一の方法。壁とボールのスクワットはフォームが自動的に矯正されるため再開初期の型づくりに最適</p>
+    </div>
+  </div>
+
+  <div class="card d2">
+    <h3>火 — 背中と肩甲骨（2019の穴・器具ほぼ不要）</h3>
+    <p class="sub">背中・肩甲骨</p>
+    <ul>
+      <li class="pslot"><span class="chip">Phase 0</span>プローン Y-T-W 各5回×1（マット上）</li>
+      <li class="pslot"><span class="chip">Phase 1</span>Y-T-W 各10×2（ボールに腹）／タオル等尺ロウ 10秒×5／四つ這いスキャプラプッシュ 15×2</li>
+      <li class="pslot"><span class="chip">Phase 2</span>＋ボール上バックエクステンション 10×3／Y-T-W 各ポジションで3秒静止</li>
+    </ul>
+    <div class="why">
+      <p><b>なぜこの日か</b> = 2019の穴。肩の安定性の根</p>
+      <p><b>なぜ</b> = プローン Y-T-W（うつ伏せで腕をY字→T字→W字に浮かせる）は肩甲骨の下制・内転に直接効く。器具ゼロ・完全に静音</p>
+      <p><b>なぜ</b> = Phase 1 以降はバランスボールに腹を乗せる。腕が床につかえないぶん可動域が広がり、肩甲骨により深く効く</p>
+      <p><b>なぜ</b> = タオル等尺性ロウ（タオルの両端を持ち引き合ったまま）は引く動作の神経を起こす</p>
+    </div>
+  </div>
+
+  <div class="card d3">
+    <h3>水 — 心肺（2択の日）</h3>
+    <p class="sub">心肺（外=速歩 / 中=サンドウォーク）</p>
+    <ul>
+      <li class="pslot"><span class="chip">Phase 0</span>外・中どちらも 3分</li>
+      <li class="pslot"><span class="chip">Phase 1</span>外＝3分速・3分緩 ×3／中＝30秒速・30秒緩 ×6</li>
+      <li class="pslot"><span class="chip">Phase 2</span>外＝×5／中＝×10（速い側のペースを上げる）</li>
+    </ul>
+    <div class="why">
+      <p><b>なぜこの日か</b> = 2択の日はここだけ。天候で選ぶ</p>
+      <p><b>なぜ（外＝インターバル速歩・3分速く＝会話が続かない速さ）</b> = VO2max を上げる証拠が最も厚い形式で、走らないので膝と階下に優しい</p>
+      <p><b>なぜ（中＝サンドウォーク・サンドステッパー上）</b> = ウレタンが衝撃を吸収するのでジャンプなしで心拍を上げられる。振動NGという最も硬い制約に対する最適解</p>
+    </div>
+  </div>
+
+  <div class="card d4">
+    <h3>木 — 体幹</h3>
+    <p class="sub">体幹（プランク系）</p>
+    <ul>
+      <li class="pslot"><span class="chip">Phase 0</span>プランク 20秒×2</li>
+      <li class="pslot"><span class="chip">Phase 1</span>プランク 40秒×3／サイドプランク 左右20秒×2／デッドバグ 10×2</li>
+      <li class="pslot"><span class="chip">Phase 2</span>プランク 60秒×3／ステッパー前腕プランク（不安定面で難度を上げる）／サイドプランク 40秒</li>
+    </ul>
+    <div class="why">
+      <p><b>なぜこの日か</b> = 過去に続いた実績あり＝抵抗が最も低い</p>
+      <p><b>なぜ</b> = 過去に続いた実績がある＝着手の抵抗が最も低い日。やる気が出ない週の避難先にもなる</p>
+    </div>
+  </div>
+
+  <div class="card d5">
+    <h3>金 — 脚とお尻 B</h3>
+    <p class="sub">脚・お尻 B（ヒンジ・片脚へ向かう）</p>
+    <ul>
+      <li class="pslot"><span class="chip">Phase 0</span>ヒップリフト 10×1</li>
+      <li class="pslot"><span class="chip">Phase 1</span>ヒップヒンジ（グッドモーニング動作）10×3／片脚ヒップリフト 左右10×2／ステップアップ（サンドステッパー 14.5cm）左右10×2／仰向けでかかとをボールに乗せたヒップリフト 10×2／締めにウォールシット1本</li>
+      <li class="pslot"><span class="chip">Phase 2</span>＋ブルガリアンスクワット（解禁条件クリア後）／ウォールシット限界まで1本</li>
+    </ul>
+    <div class="why">
+      <p><b>なぜこの日か</b> = 脚は週2回（2019の頻度と同じ）／月曜の膝主導に対し、こちらは股関節主導。お尻に効かせる日</p>
+      <p><b>なぜ（ウォールシット＝空気椅子）</b> = 振動ゼロ・音ゼロで「全力を出し切る」感覚だけを取り出せる。バーベルの代替のうち、感覚面で最も近い</p>
+    </div>
+  </div>
+
+  <div class="card d6">
+    <h3>土 — 胸を開く</h3>
+    <p class="sub">胸を開く・ストレッチ</p>
+    <ul>
+      <li class="pslot"><span class="chip">Phase 0</span>ボールに背中を預けて胸椎伸展 1分（75cm だから成立する）</li>
+      <li class="pslot"><span class="chip">Phase 1</span>＋ドアフレーム大胸筋ストレッチ 左右30秒×2／キャットカウ 10回</li>
+      <li class="pslot"><span class="chip">Phase 2</span>Phase を進めない（ストレッチは負荷漸進の対象外。時間だけ伸ばす）</li>
+    </ul>
+    <div class="why">
+      <p><b>なぜこの日か</b> = 疲労を抜きつつ、姿勢改善は火曜と対</p>
+      <p><b>なぜ</b> = 火曜で背中を締め、土曜で前を開く。2019年の配分が生む前傾姿勢・肩の内巻きリスクへの対処</p>
+    </div>
+  </div>
+
+  <div class="card d7">
+    <h3>日 — リカバリー</h3>
+    <p class="sub">リカバリー（瞑想 or 散歩 or 座るだけ）</p>
+    <ul>
+      <li class="pslot"><span class="chip">Phase 0</span>マットに座れば合格</li>
+      <li class="pslot"><span class="chip">Phase 1</span>同左（瞑想 Podcast 5分版 or 10分版／散歩／何もしない）</li>
+      <li class="pslot"><span class="chip">Phase 2</span>同左（Phase 進行なし）</li>
+    </ul>
+    <div class="why">
+      <p><b>なぜこの日か</b> = Podcast 5分/10分版の出番。マットに座れば合格</p>
+      <p><b>なぜ</b> = ここを「休む日」ではなく「一番低い合格」に置くことで、7日の並びが切れない</p>
+    </div>
+  </div>
+
+  <p class="note">「歩く」は主菜が何であれ任意の副菜として重ねてよい。選択肢を増やさないため義務にはしない。</p>
+</section>
+
+<!-- ② -->
+<section>
+  <h2><span class="num">②</span>フェーズと移行条件（日数ではなく達成基準）</h2>
+
+  <div class="phase">
+    <h3>Phase 0 — 習慣化</h3>
+    <dl class="kv">
+      <dt>進む条件</dt><dd>合格が7日連続で並ぶまで</dd>
+      <dt>1回の長さ</dt><dd>2〜5分</dd>
+      <dt>中身</dt><dd>各日 種目1つだけ。目的は「毎朝マットに座る」の定着のみ</dd>
+    </dl>
+  </div>
+
+  <div class="phase">
+    <h3>Phase 1 — 型づくり</h3>
+    <dl class="kv">
+      <dt>進む条件</dt><dd>下の3条件を全て満たすまで</dd>
+      <dt>1回の長さ</dt><dd>8〜12分</dd>
+      <dt>中身</dt><dd>種目2〜3つ。鏡と動画でフォームを作る</dd>
+    </dl>
+  </div>
+
+  <div class="phase">
+    <h3>Phase 2 — 負荷</h3>
+    <dl class="kv">
+      <dt>進む条件</dt><dd>以降</dd>
+      <dt>1回の長さ</dt><dd>12〜18分</dd>
+      <dt>中身</dt><dd>片脚・加重・テンポを導入。ここから「やってる感」が戻る</dd>
+    </dl>
+  </div>
+
+  <div class="checklist">
+    <h3>Phase 1 → Phase 2 の解禁条件（3つ全て）</h3>
+    <label><input type="checkbox"><span>自重スクワット 20回×3セットが RPE 7以下（あと3回できる余裕がある）</span></label>
+    <label><input type="checkbox"><span>片脚立ち 左右各30秒、ぐらつかない</span></label>
+    <label><input type="checkbox"><span>スプリットスクワット（後ろ足は床）各脚10回×2セット、膝に違和感なし</span></label>
+    <p class="note"><b>ブルガリアンスクワット解禁条件</b> = 上記3つに加えて、サンドステッパーに後ろ足を乗せたスプリットスクワット10回が安定してから。</p>
+  </div>
+</section>
+
+<!-- ③ -->
+<section>
+  <h2><span class="num">③</span>バーベルスクワットの代替 — 3段ロケット</h2>
+  <p class="lede">自宅で「担ぐ圧・全力を出し切る感覚」を作る手段は1つでは足りない。効果の大きい順に3つ重ねる。</p>
+  <ol class="rocket">
+    <li><b>加重リュック（最も直接的）</b>— 本や水入りペットボトルを詰めて背負う。担ぐという行為そのものを再現できる唯一の手段。5kg から始めて 10〜15kg まで</li>
+    <li><b>テンポ（5秒下ろす・1秒静止・爆発的に上げる）</b>— 同じ重量でも筋肉が張力下にいる時間が3倍になる。数値より「効かせる」を重視する本人の軸に合う</li>
+    <li><b>片脚化（ブルガリアン）</b>— 荷重が実質2倍近くになる。正しいフォームなら膝への負担は通常のスクワットより小さい（2026-09-03 ユーザー訂正）</li>
+  </ol>
+  <p class="callout">「全力を出し切る」だけを取り出すなら、<b>ウォールシットを限界まで</b> が最も近い。金曜の最後に週1回置く。</p>
+</section>
+
+<!-- ④ -->
+<section>
+  <h2><span class="num">④</span>フォーム確認</h2>
+  <p class="lede">月曜だけを撮影日にする。スマホを立てて横から1セット撮る。チェックは3点だけ。</p>
+  <ul class="three">
+    <li><span>1</span>膝と爪先の向きは揃っているか</li>
+    <li><span>2</span>骨盤は倒れていないか</li>
+    <li><span>3</span>背中は丸まっていないか</li>
+  </ul>
+  <p class="note">週1で見比べれば、消えたトレーナーの目の代わりになる</p>
+</section>
+
+<!-- ⑤ -->
+<section>
+  <h2><span class="num">⑤</span>歩数の刻み方</h2>
+  <p class="lede">現状は歩数が少ない日がある。いきなり 8,000歩を目標にしない。</p>
+  <ul class="steps">
+    <li><span class="chip">Phase 0</span>1日1回、外に出る（歩数は問わない）</li>
+    <li><span class="chip">Phase 1</span>2,000歩／日</li>
+    <li><span class="chip">Phase 2</span>4,000歩／日 → 6,000歩／日</li>
+  </ul>
+</section>
+
+<!-- ⑥ -->
+<section>
+  <h2><span class="num">⑥</span>継承元から実測したこと</h2>
+  <div class="tablewrap">
+    <table>
+      <caption>2019年プログラムの実績（8か月・2月〜10月・51種目・605セット・週約2回）</caption>
+      <thead>
+        <tr><th>部位</th><th>セット数</th><th>比率</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>脚</td><td class="n">270</td><td class="n">44.6%</td></tr>
+        <tr><td>胸</td><td class="n">103</td><td class="n">17.0%</td></tr>
+        <tr><td>肩</td><td class="n">79</td><td class="n">13.1%</td></tr>
+        <tr><td>腕</td><td class="n">34</td><td class="n">5.6%</td></tr>
+        <tr><td>腹</td><td class="n">10</td><td class="n">1.7%</td></tr>
+        <tr class="hole"><td>背中</td><td class="n">3</td><td class="n">0.5%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ul class="facts">
+    <li>Push : Pull = 60 : 1。評価レポートの結論は「優秀なトレーナー。ただし背中のプログラミングに盲点あり」</li>
+    <li>「肩が弱い・ダンベルがぐらぐらする」の原因は肩ではなく肩甲骨の安定性（背中の筋力）不足と指摘されている</li>
+    <li>重量進行の実績: スクワット 30kg → 62.5kg（4か月で倍）、デッドリフト 70kg → 75kg、ベンチプレス 32kg → 37.5kg</li>
+    <li>レップ範囲の配分: 1-3rep 16% / 4-6rep 21% / 7-10rep 43% / 11-15rep 18%</li>
+    <li>構成比: コンパウンド 59% / ファンクショナル 14% / アクセサリー 27%</li>
+  </ul>
+  <p class="callout"><b>本設計が継承する原則</b>: プログレッシブ・オーバーロード／レップ範囲の使い分け（DUP）／コンパウンド中心／少種目・高集中／RPE 7-8 で止める（あと2-3回できる余裕を残す）</p>
+  <p class="callout"><b>本設計が埋める穴</b>: 背中と肩甲骨。ユーザーが自ら「肩甲骨を大きく動かしたい・胸を開きたい」と希望した部位が、6年前の最大の欠落と一致した。これを第二の柱に据える。</p>
+</section>
+
+<p class="calendar-link"><a href="calendar.html">→ 合格カレンダーを開く</a></p>
+
+<footer class="foot">
+  出典 = projects/fitness/PROGRAM-DESIGN-v1_20260904.md（2026-09-04 kn 窓）。本ページは単一ファイル・外部参照なしでオフラインで開ける。
+</footer>
+
+</div>
+</body>
+</html>

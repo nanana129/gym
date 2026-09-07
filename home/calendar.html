@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>合格カレンダー — 自宅プログラム</title>
+<style>
+  :root{
+    --bg:#faf9f7; --card:#ffffff; --ink:#1b1917; --muted:#6c655d;
+    --line:#e5ded4; --accent:#8a5a2b; --chip:#f1ebe2; --ok:#2f6f5e; --faint:#d8d0c4;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.7 -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    overflow-wrap:anywhere;
+  }
+  .wrap{max-width:34rem; margin:0 auto; padding:1rem .75rem 3rem;}
+  h1{font-size:1.1rem; margin:0 0 .2rem;}
+  .meta{font-size:.76rem; color:var(--muted); margin:0 0 1rem;}
+
+  nav.tabs{display:flex; gap:.4rem; margin:0 0 1rem;}
+  nav.tabs button{
+    flex:1; font:inherit; font-size:.86rem; padding:.5rem .3rem; cursor:pointer;
+    background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:.35rem;
+  }
+  nav.tabs button.on{background:var(--ink); color:#fff; border-color:var(--ink); font-weight:700;}
+
+  .bar{display:flex; align-items:center; justify-content:space-between; margin:0 0 .6rem;}
+  .bar button{font:inherit; font-size:1rem; padding:.35rem .8rem; cursor:pointer;
+    background:var(--card); border:1px solid var(--line); border-radius:.35rem; color:var(--ink);}
+  .bar .ym{font-weight:700; font-size:1rem;}
+  .counts{font-size:.86rem; color:var(--muted); margin:0 0 .8rem;}
+  .counts b{color:var(--ok); font-size:1.05rem;}
+
+  table.cal{border-collapse:collapse; width:100%; background:var(--card);
+    border:1px solid var(--line); border-radius:.4rem; overflow:hidden;}
+  table.cal th{font-size:.72rem; color:var(--muted); font-weight:700; padding:.35rem 0; background:var(--chip);}
+  table.cal td{border:1px solid var(--line); padding:0; height:3rem; vertical-align:top; width:14.28%;}
+  table.cal td.pad{background:#f5f2ee; border-color:var(--line);}
+  table.cal td button{
+    width:100%; height:3rem; border:0; background:transparent; font:inherit; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    padding:.2rem 0 0; color:var(--ink);
+  }
+  td .dnum{font-size:.7rem; color:var(--muted); line-height:1;}
+  td .mark{font-size:1.15rem; color:var(--ok); line-height:1.2;}
+  td.today button{box-shadow:inset 0 0 0 2px var(--accent);}
+
+  .day-head{background:var(--card); border:1px solid var(--line); border-radius:.4rem; padding:.8rem .9rem; margin:0 0 .8rem;}
+  .day-head h2{margin:0; font-size:1.05rem;}
+  .day-head .theme{font-size:.86rem; color:var(--accent); font-weight:700; margin:.2rem 0 0;}
+  .recent{font-size:.82rem; color:var(--muted); margin:.5rem 0 0; font-variant-numeric:tabular-nums;}
+  .recent b{color:var(--ink); letter-spacing:.25em;}
+
+  ul.ladder{list-style:none; margin:0 0 1rem; padding:0;}
+  ul.ladder li{margin:0 0 .4rem;}
+  ul.ladder button{
+    width:100%; text-align:left; font:inherit; font-size:.9rem; cursor:pointer;
+    background:var(--card); border:1px solid var(--line); border-radius:.4rem;
+    padding:.6rem .7rem; color:var(--ink); display:flex; gap:.6rem; align-items:flex-start;
+  }
+  ul.ladder button .lv{
+    flex:0 0 auto; width:1.5rem; height:1.5rem; border-radius:50%;
+    background:var(--chip); color:var(--accent); font-size:.78rem; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  ul.ladder button.sel{border-color:var(--ok); background:#eef5f2; box-shadow:inset 0 0 0 1px var(--ok);}
+  ul.ladder button.sel .lv{background:var(--ok); color:#fff;}
+
+  .common{background:var(--card); border:1px solid var(--line); border-radius:.4rem; padding:.8rem .9rem; margin:0 0 1rem;}
+  .common h3{margin:0 0 .6rem; font-size:.9rem; color:var(--muted);}
+  .common label{display:flex; gap:.5rem; align-items:center; font-size:.9rem; margin:.5rem 0;}
+  .common input[type=checkbox]{width:1.1rem; height:1.1rem; flex:0 0 auto;}
+  .common input[type=number], .common input[type=text]{
+    font:inherit; font-size:.9rem; padding:.4rem .5rem; border:1px solid var(--line);
+    border-radius:.3rem; background:var(--bg); color:var(--ink); width:100%; min-width:0;
+  }
+  .common input[type=number]{max-width:6rem;}
+  .common .row{display:flex; gap:.5rem; align-items:center; margin:.5rem 0;}
+  .common .row span{flex:0 0 auto; font-size:.86rem; color:var(--muted);}
+
+  .d14wrap{overflow-x:auto; -webkit-overflow-scrolling:touch; background:var(--card);
+    border:1px solid var(--line); border-radius:.4rem; padding:.7rem .5rem;}
+  .d14{display:flex; gap:.35rem; min-width:max-content;}
+  .d14 .col{width:2.6rem; flex:0 0 auto; text-align:center;}
+  .d14 .col .dd{font-size:.68rem; color:var(--muted); line-height:1.3;}
+  .d14 .col .wd{font-size:.68rem; color:var(--muted); line-height:1.3;}
+  .d14 .col .track{height:5rem; display:flex; flex-direction:column-reverse; gap:2px; margin:.3rem 0;}
+  .d14 .col .track i{flex:1; border-radius:2px; background:#efe9e0; display:block;}
+  .d14 .col .track i.on{background:var(--ok);}
+  .d14 .col .track i.faint{background:var(--faint);}
+  .d14 .col .mn{font-size:.68rem; color:var(--muted); font-variant-numeric:tabular-nums;}
+  .d14 .col.today .dd{color:var(--accent); font-weight:700;}
+
+  .io{margin:1.2rem 0 0;}
+  .io h3{font-size:.9rem; margin:0 0 .5rem; color:var(--muted);}
+  .io .btns{display:flex; gap:.4rem; flex-wrap:wrap; margin:0 0 .5rem;}
+  .io button{font:inherit; font-size:.84rem; padding:.45rem .7rem; cursor:pointer;
+    background:var(--card); border:1px solid var(--line); border-radius:.35rem; color:var(--ink);}
+  .io textarea{width:100%; min-height:8rem; font:12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    padding:.5rem; border:1px solid var(--line); border-radius:.3rem; background:var(--card); color:var(--ink);}
+  .io .msg{font-size:.82rem; color:var(--accent); margin:.4rem 0 0; min-height:1.2rem;}
+
+  footer.foot{border-top:1px solid var(--line); margin-top:2rem; padding-top:.8rem;
+    font-size:.74rem; color:var(--muted);}
+  .backlink{display:inline-block; font-size:.84rem; margin:1.2rem 0 0;}
+  [hidden]{display:none !important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>合格カレンダー</h1>
+<p class="meta">設計の正本 = PROGRAM-DESIGN-v1_20260904.md「合格カレンダーのはしご」／記録はこの端末の中だけに残る</p>
+
+<nav class="tabs">
+  <button id="tab-cal" class="on" type="button">カレンダー</button>
+  <button id="tab-day" type="button">今日</button>
+  <button id="tab-d14" type="button">直近14日</button>
+</nav>
+
+<!-- 画面1 カレンダー -->
+<section id="view-cal">
+  <div class="bar">
+    <button id="prev" type="button">‹ 前月</button>
+    <span class="ym" id="ym"></span>
+    <button id="next" type="button">次月 ›</button>
+  </div>
+  <p class="counts">今月 <b id="cnt-month">0</b> 日／累計 <b id="cnt-all">0</b> 日</p>
+  <table class="cal">
+    <thead><tr><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th><th>日</th></tr></thead>
+    <tbody id="cal-body"></tbody>
+  </table>
+</section>
+
+<!-- 画面2 日の面 -->
+<section id="view-day" hidden>
+  <div class="day-head">
+    <h2 id="day-title"></h2>
+    <p class="theme" id="day-theme"></p>
+    <p class="recent" id="day-recent" hidden></p>
+  </div>
+  <ul class="ladder" id="ladder"></ul>
+  <div class="common">
+    <h3>共通項目（はしごとは別に毎日付けられる）</h3>
+    <label><input type="checkbox" id="f-walk"> 歩いた</label>
+    <div class="row"><span>分数</span><input type="number" id="f-min" min="0" step="1" inputmode="numeric"></div>
+    <div class="row"><span>メモ</span><input type="text" id="f-note" maxlength="120"></div>
+  </div>
+  <button class="io" id="day-back" type="button" style="font:inherit;font-size:.86rem;padding:.5rem .8rem;background:var(--card);border:1px solid var(--line);border-radius:.35rem;">‹ カレンダーへ戻る</button>
+</section>
+
+<!-- 画面3 直近14日 -->
+<section id="view-d14" hidden>
+  <p class="counts">棒の高さ = 選んだ段。その曜日の段数が満杯。薄い1段 = 段なしで共通項目だけの日。</p>
+  <div class="d14wrap" id="d14wrap"><div class="d14" id="d14"></div></div>
+</section>
+
+<div class="io">
+  <h3>書き出し・控え・復元</h3>
+  <div class="btns">
+    <button id="btn-csv" type="button">CSV を出す</button>
+    <button id="btn-json" type="button">JSON の控えを出す</button>
+    <button id="btn-load" type="button">貼った JSON を読み込む</button>
+  </div>
+  <textarea id="io-area" placeholder="ここに CSV / JSON が出ます。復元するときは控えの JSON を貼って「貼った JSON を読み込む」を押す。"></textarea>
+  <p class="msg" id="io-msg"></p>
+</div>
+
+<a class="backlink" href="program-v5.html">‹ 自宅プログラム v5 へ戻る</a>
+
+<footer class="foot">
+  単一ファイル・外部参照なし。記録はこの端末の localStorage に残るだけで、どこにも送られない。<br>
+  月に1回は「JSON の控えを出す」でコピーして手元に保管する。
+</footer>
+
+</div>
+<script>
+"use strict";
+/* 正本 = PROGRAM-DESIGN-v1_20260904.md「合格カレンダーのはしご」。設計書を直したらここも直す（一方向） */
+var LADDER = {
+  1: { theme: "月 脚・お尻A", steps: [
+    "スクワット 1回",
+    "スクワット 10回×1",
+    "スクワット 15回×3",
+    "3 ＋ ヒップリフト 15×3 ＋ 壁ボールスクワット 10×2",
+    "加重リュック／テンポ法／ステッパー上スクワット"
+  ]},
+  2: { theme: "火 背中・肩甲骨", steps: [
+    "プローン Y-T-W 1回",
+    "Y-T-W 各5回×1",
+    "Y-T-W 各10回×2（ボールに腹）",
+    "3 ＋ タオル等尺ロウ 10秒×5 ＋ 四つ這いスキャプラプッシュ 15×2",
+    "4 ＋ ボール上バックエクステンション 10×3"
+  ]},
+  3: { theme: "水 心肺（外/中）", steps: [
+    "外に出る、またはステッパーに1分乗る",
+    "3分（外＝速歩／中＝サンドウォーク）",
+    "外＝3分速・3分緩 ×3／中＝30秒速・30秒緩 ×6",
+    "外＝×5／中＝×10"
+  ]},
+  4: { theme: "木 体幹", steps: [
+    "プランク 1回（10秒）",
+    "プランク 20秒×2",
+    "プランク 40秒×3",
+    "3 ＋ サイドプランク 左右20秒×2 ＋ デッドバグ 10×2",
+    "プランク 60秒×3 ＋ ステッパー前腕プランク"
+  ]},
+  5: { theme: "金 脚・お尻B", steps: [
+    "ヒップリフト 1回",
+    "ヒップリフト 10回×1",
+    "ヒップヒンジ 10×3 ＋ 片脚ヒップリフト 左右10×2",
+    "3 ＋ ステップアップ 左右10×2 ＋ ボールかかとヒップリフト 10×2 ＋ ウォールシット1本",
+    "ブルガリアン（解禁後）＋ ウォールシット限界まで1本"
+  ]},
+  6: { theme: "土 胸を開く", steps: [
+    "ボールに背中を預ける（10秒）",
+    "胸椎伸展 1分",
+    "2 ＋ ドアフレーム大胸筋ストレッチ 左右30秒×2 ＋ キャットカウ 10回",
+    "3 ＋ 火曜のはしごから1段"
+  ]},
+  0: { theme: "日 リカバリー", steps: [
+    "マットに座る",
+    "瞑想 5分 or 散歩",
+    "瞑想 10分 ＋ 散歩",
+    "好きな曜日のはしごから1段"
+  ]}
+};
+var WD = ["日","月","火","水","木","金","土"];
+var KEY = "fitness-home-calendar-v1";
+
+var store = {};
+function load(){
+  try { store = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; }
+  catch (e) { store = {}; }
+}
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(store)); }
+  catch (e) { msg("保存できなかった（この端末の保存領域が使えない）"); }
+}
+function iso(d){
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+function fromIso(s){ var a = s.split("-"); return new Date(+a[0], +a[1]-1, +a[2]); }
+function rec(k){ return store[k] || null; }
+function passed(r){
+  if (!r) return false;
+  if (r.level != null) return true;
+  if (r.walk) return true;
+  if (+r.min >= 1) return true;
+  if (r.note && String(r.note).trim() !== "") return true;
+  return false;
+}
+function prune(k){
+  var r = store[k];
+  if (!r) return;
+  if (r.level == null && !r.walk && !(+r.min >= 1) && (!r.note || String(r.note).trim() === "")) delete store[k];
+}
+function msg(t){ document.getElementById("io-msg").textContent = t || ""; }
+
+/* ---- 画面1 カレンダー ---- */
+var cur = new Date(); cur.setDate(1);
+var TODAY = iso(new Date());
+
+function renderCal(){
+  document.getElementById("ym").textContent = cur.getFullYear() + "年 " + (cur.getMonth()+1) + "月";
+  var first = new Date(cur.getFullYear(), cur.getMonth(), 1);
+  var lead = (first.getDay() + 6) % 7;            /* 月曜始まり */
+  var days = new Date(cur.getFullYear(), cur.getMonth()+1, 0).getDate();
+  var body = document.getElementById("cal-body");
+  body.textContent = "";
+  var tr = document.createElement("tr");
+  var i;
+  for (i = 0; i < lead; i++){ var pad = document.createElement("td"); pad.className = "pad"; tr.appendChild(pad); }
+  var monthCount = 0;
+  for (i = 1; i <= days; i++){
+    if (tr.children.length === 7){ body.appendChild(tr); tr = document.createElement("tr"); }
+    var d = new Date(cur.getFullYear(), cur.getMonth(), i);
+    var k = iso(d);
+    var td = document.createElement("td");
+    if (k === TODAY) td.className = "today";
+    var b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("data-date", k);
+    var n = document.createElement("span"); n.className = "dnum"; n.textContent = i;
+    var m = document.createElement("span"); m.className = "mark";
+    var ok = passed(rec(k));
+    m.textContent = ok ? "○" : "";
+    if (ok) monthCount++;
+    b.appendChild(n); b.appendChild(m);
+    b.addEventListener("click", function(){ openDay(this.getAttribute("data-date")); });
+    td.appendChild(b);
+    tr.appendChild(td);
+  }
+  while (tr.children.length < 7){ var pad2 = document.createElement("td"); pad2.className = "pad"; tr.appendChild(pad2); }
+  body.appendChild(tr);
+
+  var all = 0, kk;
+  for (kk in store){ if (Object.prototype.hasOwnProperty.call(store, kk) && passed(store[kk])) all++; }
+  document.getElementById("cnt-month").textContent = monthCount;
+  document.getElementById("cnt-all").textContent = all;
+}
+
+/* ---- 画面2 日の面 ---- */
+var openKey = null;
+
+function openDay(k){
+  openKey = k;
+  var d = fromIso(k);
+  var wd = d.getDay();
+  var L = LADDER[wd];
+  document.getElementById("day-title").textContent =
+    (d.getMonth()+1) + "月" + d.getDate() + "日（" + WD[wd] + "）";
+  document.getElementById("day-theme").textContent = L.theme;
+
+  var rp = document.getElementById("day-recent");
+  if (k === TODAY){
+    var parts = [], j;
+    for (j = 4; j >= 1; j--){
+      var pd = new Date(d.getFullYear(), d.getMonth(), d.getDate() - j);
+      var pr = rec(iso(pd));
+      parts.push(pr && pr.level != null ? String(pr.level) : "—");
+    }
+    rp.innerHTML = "";
+    rp.appendChild(document.createTextNode("直近4日: "));
+    var bEl = document.createElement("b");
+    bEl.textContent = parts.join(" ");
+    rp.appendChild(bEl);
+    rp.hidden = false;
+  } else {
+    rp.hidden = true;
+  }
+
+  var r = rec(k) || {};
+  var ul = document.getElementById("ladder");
+  ul.textContent = "";
+  L.steps.forEach(function(txt, idx){
+    var lv = idx + 1;
+    var li = document.createElement("li");
+    var b = document.createElement("button");
+    b.type = "button";
+    if (r.level === lv) b.className = "sel";
+    var sp = document.createElement("span"); sp.className = "lv"; sp.textContent = lv;
+    var tx = document.createElement("span"); tx.textContent = txt;
+    b.appendChild(sp); b.appendChild(tx);
+    b.addEventListener("click", function(){ toggleLevel(lv); });
+    li.appendChild(b);
+    ul.appendChild(li);
+  });
+
+  document.getElementById("f-walk").checked = !!r.walk;
+  document.getElementById("f-min").value = (r.min == null || r.min === "") ? "" : r.min;
+  document.getElementById("f-note").value = r.note || "";
+
+  show("day");
+}
+function ensure(){ if (!store[openKey]) store[openKey] = { level:null, walk:false, min:"", note:"" }; return store[openKey]; }
+function toggleLevel(lv){
+  var r = ensure();
+  r.level = (r.level === lv) ? null : lv;
+  prune(openKey); save(); openDay(openKey); renderCal(); renderD14();
+}
+function bindField(id, fn){
+  document.getElementById(id).addEventListener("input", function(){
+    var r = ensure(); fn(r, this); prune(openKey); save(); renderCal(); renderD14();
+  });
+}
+bindField("f-walk", function(r, el){ r.walk = el.checked; });
+bindField("f-min",  function(r, el){ r.min = el.value === "" ? "" : Math.max(0, parseInt(el.value, 10) || 0); });
+bindField("f-note", function(r, el){ r.note = el.value; });
+document.getElementById("day-back").addEventListener("click", function(){ show("cal"); });
+
+/* ---- 画面3 直近14日 ---- */
+function renderD14(){
+  var box = document.getElementById("d14");
+  box.textContent = "";
+  var base = new Date(); base.setHours(0,0,0,0);
+  var i;
+  for (i = 13; i >= 0; i--){
+    var d = new Date(base.getFullYear(), base.getMonth(), base.getDate() - i);
+    var k = iso(d), wd = d.getDay(), max = LADDER[wd].steps.length;
+    var r = rec(k);
+    var col = document.createElement("div");
+    col.className = "col" + (k === TODAY ? " today" : "");
+    var dd = document.createElement("div"); dd.className = "dd";
+    dd.textContent = (d.getMonth()+1) + "/" + d.getDate();
+    var wdEl = document.createElement("div"); wdEl.className = "wd"; wdEl.textContent = WD[wd];
+    var tr = document.createElement("div"); tr.className = "track";
+    var j;
+    for (j = 1; j <= max; j++){
+      var seg = document.createElement("i");
+      if (r && r.level != null && j <= r.level) seg.className = "on";
+      else if (j === 1 && (!r || r.level == null) && passed(r)) seg.className = "faint";
+      tr.appendChild(seg);
+    }
+    var mn = document.createElement("div"); mn.className = "mn";
+    mn.textContent = (r && +r.min >= 1) ? (r.min + "分") : "";
+    col.appendChild(dd); col.appendChild(wdEl); col.appendChild(tr); col.appendChild(mn);
+    box.appendChild(col);
+  }
+  var w = document.getElementById("d14wrap");
+  w.scrollLeft = w.scrollWidth;
+}
+
+/* ---- 画面切替 ---- */
+function show(which){
+  document.getElementById("view-cal").hidden = (which !== "cal");
+  document.getElementById("view-day").hidden = (which !== "day");
+  document.getElementById("view-d14").hidden = (which !== "d14");
+  document.getElementById("tab-cal").className = (which === "cal") ? "on" : "";
+  document.getElementById("tab-day").className = (which === "day") ? "on" : "";
+  document.getElementById("tab-d14").className = (which === "d14") ? "on" : "";
+  if (which === "d14") renderD14();
+}
+document.getElementById("tab-cal").addEventListener("click", function(){ show("cal"); });
+document.getElementById("tab-day").addEventListener("click", function(){ openDay(TODAY); });
+document.getElementById("tab-d14").addEventListener("click", function(){ show("d14"); });
+document.getElementById("prev").addEventListener("click", function(){ cur.setMonth(cur.getMonth()-1); renderCal(); });
+document.getElementById("next").addEventListener("click", function(){ cur.setMonth(cur.getMonth()+1); renderCal(); });
+
+/* ---- 書き出し・控え・復元 ---- */
+function q(v){
+  var s = (v == null) ? "" : String(v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+document.getElementById("btn-csv").addEventListener("click", function(){
+  var keys = Object.keys(store).sort();
+  var rows = ["date,weekday,level,level_label,walk,min,note"];
+  keys.forEach(function(k){
+    var r = store[k], wd = fromIso(k).getDay();
+    var label = (r.level != null) ? LADDER[wd].steps[r.level - 1] : "";
+    rows.push([q(k), q(WD[wd]), q(r.level == null ? "" : r.level), q(label),
+               q(r.walk ? 1 : 0), q(r.min === "" || r.min == null ? "" : r.min), q(r.note || "")].join(","));
+  });
+  document.getElementById("io-area").value = rows.join("\n");
+  msg(keys.length + " 件を CSV にした");
+});
+document.getElementById("btn-json").addEventListener("click", function(){
+  document.getElementById("io-area").value = JSON.stringify(store, null, 1);
+  msg(Object.keys(store).length + " 件の控えを出した。全文をコピーして保管する");
+});
+var pending = null;
+document.getElementById("btn-load").addEventListener("click", function(){
+  var txt = document.getElementById("io-area").value.trim();
+  if (!txt){ msg("テキスト欄が空。控えの JSON を貼ってから押す"); pending = null; return; }
+  if (pending !== null){
+    store = pending; pending = null; save();
+    document.getElementById("btn-load").textContent = "貼った JSON を読み込む";
+    renderCal(); renderD14();
+    msg("読み込んだ（" + Object.keys(store).length + " 件で上書きした）");
+    return;
+  }
+  var obj;
+  try { obj = JSON.parse(txt); } catch (e) { msg("JSON として読めない。控えの全文を貼り直す"); return; }
+  if (!obj || typeof obj !== "object" || Array.isArray(obj)){ msg("控えの形ではない（日付をキーにしたオブジェクトが要る）"); return; }
+  var keys = Object.keys(obj).filter(function(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); });
+  if (keys.length === 0){ msg("日付の行が1件も無い。読み込まない"); return; }
+  var clean = {};
+  keys.forEach(function(k){
+    var r = obj[k] || {};
+    clean[k] = {
+      level: (typeof r.level === "number") ? r.level : null,
+      walk: !!r.walk,
+      min: (r.min === "" || r.min == null) ? "" : (parseInt(r.min, 10) || 0),
+      note: (typeof r.note === "string") ? r.note : ""
+    };
+  });
+  pending = clean;
+  document.getElementById("btn-load").textContent = "もう一度押すと上書き";
+  msg(keys.length + " 件が入っている。今の " + Object.keys(store).length + " 件を消してこれで上書きする。よければもう一度押す");
+});
+
+load();
+renderCal();
+renderD14();
+</script>
+</body>
+</html>
